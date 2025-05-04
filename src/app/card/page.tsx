@@ -1,4 +1,5 @@
 "use client";
+import { useCallback } from "react";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
@@ -13,6 +14,7 @@ interface Product {
   };
   quantity: number;
 }
+
 const Card = () => {
   const [cardItems, setCardItems] = useState<Product[]>([]);
   const [userId, setUserId] = useState("");
@@ -20,12 +22,13 @@ const Card = () => {
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) setUserId(storedUserId);
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
   }, []);
-  if (userId) {
-    fetchCartItems();
-  }
-  async function fetchCartItems() {
+ 
+
+  const fetchCartItems = useCallback(async () => {
     setLoading(true);
 
     const { data: addings, error: addingError } = await supabase
@@ -57,7 +60,14 @@ const Card = () => {
 
     setCardItems(itemsWithProducts);
     setLoading(false);
-  }
+  }, [userId]); // 
+
+  useEffect(() => {
+    if (userId) {
+      fetchCartItems();
+    }
+  }, [userId, fetchCartItems]);
+  
 
   const handleRemove = async (card_id: string) => {
     const { error } = await supabase.from("card").delete().eq("id", card_id);
